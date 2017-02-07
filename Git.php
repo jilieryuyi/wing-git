@@ -556,7 +556,6 @@ class Git{
         //git blame filename
         $result = [];
         $files  = $this->helperScandir();
-        //var_dump($files);
 
         foreach ( $files as $file ){
             $res = $this->runCommand( "cd ".$this->repository."&&".$this->git_command_path." blame ".$file);
@@ -604,7 +603,6 @@ class Git{
                 $year  = date("Y",$time);
                 $month = date("Y-m",$time);
                 $day   = date("Y-m-d",$time);
-
 
                 if( !isset($result[$author]["time_statistics"]["year"][$year]) )
                     $result[$author]["time_statistics"]["year"][$year] = 0;
