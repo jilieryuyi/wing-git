@@ -1,0 +1,41 @@
+{
+    "name": "wing/git",
+    "type": "library",
+    "description": "php git helper",
+    "keywords": ["php", "git"],
+    "homepage": "http://www.itdfy.com/",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/jilieryuyi"
+    },
+    "authors": [
+        {
+            "name": "yuyi",
+            "email": "297341015@qq.com",
+            "homepage": "http://www.itdfy.com"
+        }
+    ],
+    "repositories":[
+        {
+            "type":"vcs",
+            "url":"https://github.com/jilieryuyi/wing-file-system.git"
+        },
+
+        {
+            "packagist": false
+        }
+    ],
+
+    "require": {
+        "php": ">=5.0",
+        "wing/filesystem":"dev-master"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "autoload": {
+        "psr-4": {"Wing\\Git\\": ""}
+    }
+}
