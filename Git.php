@@ -3,10 +3,22 @@ use Wing\Exception\Wexception;
 use Wing\FileSystem\WDir;
 
 /**
- * Created by PhpStorm.
- * User: yuyi
- * Date: 16/11/10
- * Time: 13:16
+ * php git助手、代码统计分析工具
+ *
+ * demo:
+ *  include __DIR__."/../vendor/autoload.php";
+    $git = new \Wing\Git\Git( "/Users/yuyi/Web/activity" );
+    $git->addExcludePath([
+         "vendor/*"
+    ]);
+    $git->addExcludeFileName([
+         "composer"
+    ]);
+    var_dump( $git->analysis() );
+ *
+ * @author yuyi
+ * @email 297341015@qq.com
+ * @create 2017-012-07
  */
 class Git{
 
