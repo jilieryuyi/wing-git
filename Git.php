@@ -13,8 +13,6 @@ class Git{
     private $repository;
     private $git_command_path;
 
-
-
     //这部分用于代码分析统计
     /**
      * @var array 支持的文件后缀
@@ -38,10 +36,6 @@ class Git{
      */
     private $exclude_file = [];
 
-
-
-
-
     /**
      * 构造函数
      *
@@ -53,6 +47,8 @@ class Git{
         $git_command_path = "git"
     )
     {
+        $repository             = str_replace("\\","/",$repository);
+        $repository             = rtrim( $repository, "/" );
         $this->repository       = $repository;
         $this->git_command_path = $git_command_path;
 
@@ -113,7 +109,9 @@ class Git{
 
 
     public function setRepository( $repository ){
-        $this->repository = $repository;
+        $repository             = str_replace("\\","/",$repository);
+        $repository             = rtrim( $repository, "/" );
+        $this->repository       = $repository;
         return $this;
     }
 
@@ -149,7 +147,7 @@ class Git{
      * @return string 命令输出结果
      */
     private function runCommand( $command ){
-        echo "run : ", $command, "\r\n";
+        //echo "run : ", $command, "\r\n";
         return (new Command( $command) )->run();
     }
 
@@ -412,8 +410,9 @@ class Git{
         return $this;
     }
 
-    private function helperScandir($callback){
+    private function helperScandir(){
         $path[] = $this->repository.'/*';
+        $files = [];
         while(count($path) != 0)
         {
             $v = array_shift($path);
@@ -468,22 +467,128 @@ class Git{
                         $ext = $info["extension"];
                     if( in_array($ext,$this->support_file_ext) )
                     {
-                        $callback($item);
+                        $files[] = $item;
                     }
                 }
             }
         }
+        return $files;
     }
 
     /**
      * @代码统计分析
-     */
+     *
+     * @return array
+     *
+     * @字段解释 xiaoan和Not Committed Yet为作者（Not Committed Yet为未提交的代码的意思）
+     * time_statistics字段为时间统计
+     * year包含的是年份的统计，代表该年份作者的代码行数
+     *     year字段下面的是 年份=>代码行数
+     *
+     * month包含的是月份的统计，代表该月份作者的代码行数
+     *      month字段下面的是 月份=>代码行数
+     *
+     * day是具体某一天的代码统计，代表该天的作者的代码行数
+     *    day下面的字段是 日期=>代码行数
+     *
+     * @demo
+     * array(2) {
+        ["xiaoan"] => array(2) {
+            ["all_lines"] => int(520)
+            ["time_statistics"] => array(3) {
+                            ["year"]=> array(1) {
+                                    [2017] => int(520)
+                            }
+                            ["month"] => array(1) {
+                                ["2017-02"] => int(520)
+                            }
+                            ["day"] => array(1) {
+                                ["2017-02-07"] => int(520)
+                            }
+            }
+        }
+        ["Not Committed Yet"] => array(2) {
+            ["all_lines"] => int(72)
+            ["time_statistics"] => array(3) {
+                ["year"]=>
+                    array(1) {
+                        [2017]=>int(72)
+                    }
+                ["month"]=>
+                    array(1) {
+                        ["2017-02"]=>int(72)
+                    }
+                ["day"]=>
+                    array(1) {
+                        ["2017-02-07"]=>int(72)
+                    }
+            }
+        }
+    }
+    */
     public function analysis(){
         //git blame filename
-        $this->helperScandir(function($file){
-            $res = $this->runCommand( $this->git_command_path." blame ".$file);
-            echo $res;
-        });
+        $result = [];
+        $files  = $this->helperScandir();
+
+        foreach ( $files as $file ){
+            $res = $this->runCommand( "cd ".$this->repository."&&".$this->git_command_path." blame ".$file);
+
+            $lines = explode("\n",$res);
+
+            foreach ( $lines as $line )
+            {
+                preg_match("/\([\s\S].+?\)/",$line,$match);
+
+                if( !isset($match[0]) )
+                {
+                    continue;
+                }
+
+                $lm = rtrim($match[0],")");
+                $lm = ltrim($lm,"(");
+
+                preg_match("/[\d]{4}\-[\d]{2}\-[\d]{2}\s[\d]{2}\:[\d]{2}\:[\d]{2}/",$lm,$lmatch);
+
+                //echo $lm,"\r\n";
+
+                $temp   = explode($lmatch[0],$lm);
+                $author = trim($temp[0]);
+
+               // echo $author,"\r\n";
+               // echo $lmatch[0],"\r\n";
+
+                if( !isset( $result[$author] ) )
+                {
+                    $result[$author]["all_lines"] = 0;
+                    $result[$author]["time_statistics"] = [];
+                }
+
+                //总行数
+                $result[$author]["all_lines"]++;
+
+                $time  = strtotime($lmatch[0]);
+                $year  = date("Y",$time);
+                $month = date("Y-m",$time);
+                $day   = date("Y-m-d",$time);
+
+
+                if( !isset($result[$author]["time_statistics"]["year"][$year]) )
+                    $result[$author]["time_statistics"]["year"][$year] = 0;
+
+                if( !isset($result[$author]["time_statistics"]["month"][$month]) )
+                    $result[$author]["time_statistics"]["month"][$month] = 0;
+
+                if( !isset($result[$author]["time_statistics"]["day"][$day]) )
+                    $result[$author]["time_statistics"]["day"][$day] = 0;
+
+                $result[$author]["time_statistics"]["year"][$year]++;
+                $result[$author]["time_statistics"]["month"][$month]++;
+                $result[$author]["time_statistics"]["day"][$day]++;
+            }
+        }
+
+        return $result;
     }
 
 }
