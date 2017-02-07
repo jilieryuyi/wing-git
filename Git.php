@@ -59,12 +59,14 @@ class Git{
         $git_command_path = "git"
     )
     {
+        echo "仓库：".$repository,"\r\n";
         $repository             = str_replace("\\","/",$repository);
         $repository             = rtrim( $repository, "/" );
         $this->repository       = $repository;
         $this->git_command_path = $git_command_path;
 
         $this->checkGitCommand();
+        var_dump($this->getBranches());
     }
 
     /**
@@ -542,6 +544,7 @@ class Git{
         //git blame filename
         $result = [];
         $files  = $this->helperScandir();
+        var_dump($files);
 
         foreach ( $files as $file ){
             $res = $this->runCommand( "cd ".$this->repository."&&".$this->git_command_path." blame ".$file);
