@@ -4,6 +4,7 @@ use Wing\FileSystem\WDir;
 
 /**
  * php git助手、代码统计分析工具
+ * 默认忽略空行
  *
  * demo:
  *  include __DIR__."/../vendor/autoload.php";
@@ -26,6 +27,10 @@ class Git{
     private $git_command_path;
 
     //这部分用于代码分析统计
+
+    //是否过滤空行
+    private $filter_empty_line = true;
+
     /**
      * @var array 支持的文件后缀
      */
@@ -67,6 +72,13 @@ class Git{
 
         $this->checkGitCommand();
         //var_dump($this->getBranches());
+    }
+
+    /**
+     * @禁用忽略空行
+     */
+    public function disabledFilterEmptyLine(){
+        $this->filter_empty_line = false;
     }
 
     /**
@@ -559,6 +571,12 @@ class Git{
                 {
                     continue;
                 }
+
+                $code = explode($match[0],$line);
+                $code = trim($code[1]);
+                if( $this->filter_empty_line && strlen($code) == 0 )
+                    continue;
+
 
                 $lm = rtrim($match[0],")");
                 $lm = ltrim($lm,"(");
