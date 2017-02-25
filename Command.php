@@ -24,7 +24,7 @@ class Command
                 $result.=$res;
             else break;
         }
-
+        pclose($handle);
         return $result;
     }
 }
